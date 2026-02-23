@@ -167,32 +167,26 @@ def get_user_by_id(user_id: str) -> Optional[User]:
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(security)
 ) -> User:
-    """Get current authenticated user from JWT token."""
-    if credentials is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+    """Get current authenticated user from JWT token. (Authentication bypassed for local UI)"""
+    users = _load_users()
     
-    token = credentials.credentials
-    token_data = verify_token(token)
+    # Return first user or create local admin
+    if users:
+        first_user_id = list(users.keys())[0]
+        return User(**users[first_user_id])
     
-    if token_data is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+    user_id = "local-admin-" + str(uuid.uuid4())[:8]
+    user = User(
+        id=user_id,
+        google_id="local-admin",
+        email="admin@localhost",
+        name="Local Admin",
+        picture=None,
+        created_at=datetime.utcnow()
+    )
     
-    user = get_user_by_id(token_data.user_id)
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    
+    users[user_id] = user.model_dump()
+    _save_users(users)
     return user
 
 
