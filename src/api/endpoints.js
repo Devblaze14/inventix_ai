@@ -93,7 +93,13 @@ export const compliance = {
 
 // ============== System ==============
 export const system = {
-  health: () => client.get('/health', { baseURL: 'http://127.0.0.1:8000' }),
+  health: () => {
+    let baseURL = 'http://127.0.0.1:8000';
+    if (import.meta.env.VITE_API_URL) {
+      baseURL = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
+    }
+    return client.get('/health', { baseURL });
+  },
   status: () => client.get('/system/status'),
 };
 
