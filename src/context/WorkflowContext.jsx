@@ -27,12 +27,12 @@ export const WorkflowProvider = ({ children }) => {
     // New Project Creation Flow State
     // Stages: 'IDLE', 'TYPE', 'IDEA', 'UPLOAD', 'PROCESSING', 'ACTIVE'
     const [creationStage, setCreationStage] = useState('IDLE');
-    const [newProjectData, setNewProjectData] = useState({ 
-        title: '', 
-        description: '', 
-        outcome: '', 
-        domain: null, 
-        projectType: 'RESEARCH' 
+    const [newProjectData, setNewProjectData] = useState({
+        title: '',
+        description: '',
+        outcome: '',
+        domain: null,
+        projectType: 'RESEARCH'
     });
 
     // System Status
@@ -44,8 +44,9 @@ export const WorkflowProvider = ({ children }) => {
         setProjectsError(null);
         try {
             const response = await api.projects.list();
-            // Transform backend response to match UI expectations
-            const transformedProjects = response.data.map(p => ({
+            // Backend returns {projects: [...], total: N} - handle both formats
+            const projectsList = response.data.projects || response.data;
+            const transformedProjects = (Array.isArray(projectsList) ? projectsList : []).map(p => ({
                 id: p.id,
                 title: p.title,
                 type: p.type,
@@ -103,10 +104,10 @@ export const WorkflowProvider = ({ children }) => {
             };
             const response = await api.projects.create(payload);
             const newProject = response.data;
-            
+
             // Refresh projects list
             await fetchProjects();
-            
+
             return newProject;
         } catch (error) {
             console.error('Failed to create project:', error);
@@ -166,12 +167,12 @@ export const WorkflowProvider = ({ children }) => {
         try {
             setCreationStage('PROCESSING');
             const newProject = await createProject(newProjectData);
-            
+
             // Set as active project and navigate to dashboard
             await fetchProjectDetails(newProject.id);
             setCreationStage('IDLE');
             setNewProjectData({ title: '', description: '', outcome: '', domain: null, projectType: 'RESEARCH' });
-            
+
             return newProject;
         } catch (error) {
             console.error('Project creation failed:', error);
@@ -185,19 +186,19 @@ export const WorkflowProvider = ({ children }) => {
             // View State
             currentView,
             navigateTo,
-            
+
             // Projects
             projects,
             projectsLoading,
             projectsError,
             fetchProjects,
-            
+
             // Active Project
             activeProject,
             activeProjectLoading,
             openProject,
             fetchProjectDetails,
-            
+
             // Creation Flow
             creationStage,
             setCreationStage,
@@ -206,14 +207,14 @@ export const WorkflowProvider = ({ children }) => {
             startNewProject,
             confirmProjectCreation,
             createProject,
-            
+
             // File Operations
             uploadFile,
-            
+
             // System
             systemStatus,
             checkSystemHealth,
-            
+
             // Legacy compatibility
             domain: activeProject?.domain
         }}>

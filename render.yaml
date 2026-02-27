@@ -1,0 +1,42 @@
+# Render.com Deployment Configuration for Inventix AI Backend
+# Deploy at: https://dashboard.render.com → New → Blueprint → connect your repo
+#
+# After deploying, copy your service URL (e.g. https://inventix-ai-backend.onrender.com)
+# and set it as VITE_API_URL in your Vercel project settings:
+#   VITE_API_URL = https://inventix-ai-backend.onrender.com/api
+
+services:
+  - type: web
+    name: inventix-ai-backend
+    env: python
+    region: singapore  # Change to region closest to your users
+    plan: free         # Free tier (spins down after 15min of inactivity)
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+
+    envVars:
+      # ---- REQUIRED: Set these in the Render dashboard ----
+      - key: GEMINI_API_KEY
+        sync: false   # Must be set manually in Render dashboard
+
+      # ---- REQUIRED: Set your Vercel URL here ----
+      - key: CORS_ORIGINS
+        value: http://localhost:5173,https://*.vercel.app
+        # Override in Render dashboard with your exact Vercel URL, e.g.:
+        # https://inventix-ai.vercel.app,http://localhost:5173
+
+      # ---- Auto-configured ----
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: SECRET_KEY
+        generateValue: true   # Render auto-generates a secure random value
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRATION_MINUTES
+        value: "120"
+      - key: DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        value: sqlite:///./inventix.db

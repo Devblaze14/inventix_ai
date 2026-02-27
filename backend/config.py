@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     allowed_extensions: str = ".pdf,.docx,.doc,.txt"
     
     # CORS
-    cors_origins: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
+    cors_origins: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,https://*.vercel.app"
     
     # LLM Configuration (Phase 2)
     llm_provider: str = "nebius"
